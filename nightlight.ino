@@ -25,7 +25,7 @@
 #define WHITE           "#ffffff"
 #define COOLWHITE       "#ffffff"
 #define WARMWHITE       "#ffb257"
-#define NUMPIXELS       15
+#define NUMPIXELS       45
 
 // set up the neopixel
 Adafruit_NeoPixel pixels(NUMPIXELS, neoPixel, NEO_GRBW + NEO_KHZ800);
