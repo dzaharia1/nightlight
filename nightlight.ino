@@ -123,8 +123,6 @@ void setLedColor(Color newColor) {
   Color startingColor = calibrateColorBrightness(currColor, previousBrightness);
   Color targetColor = calibrateColorBrightness(newColor, currBrightness);
 
-  Serial.println("~~~~~~ Changing color ~~~~~~~");
-
   int numSteps = 20;
   int redIncrement = (targetColor.red - startingColor.red) / numSteps;
   int greenIncrement = (targetColor.green - startingColor.green) / numSteps;
@@ -139,11 +137,6 @@ void setLedColor(Color newColor) {
         startingColor.blue + (i * blueIncrement)));
     pixels.show();
     delay(delayTime);
-    Serial.print(startingColor.red + (i * redIncrement));
-    Serial.print(" | ");
-    Serial.print(startingColor.green + (i * greenIncrement));
-    Serial.print(" | ");
-    Serial.println(startingColor.blue + (i * blueIncrement));
   }
 
   pixels.fill(pixels.Color(
@@ -210,12 +203,6 @@ void setLedBrightness(char * brightnessString) {
     currBrightness = 25;
   }
   setLedColor(currColor);
-  // Color calibratedColor = calibrateColorBrightness(currColor, currBrightness);
-  // pixels.fill(pixels.Color(
-  //   calibratedColor.red,
-  //   calibratedColor.green,
-  //   calibratedColor.blue
-  // ));
   previousBrightness = currBrightness;
 }
 
