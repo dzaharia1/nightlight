@@ -51,6 +51,7 @@ Adafruit_MQTT_Subscribe brightnessSetting = Adafruit_MQTT_Subscribe(&mqtt, AIO_U
 Adafruit_MQTT_Subscribe colorTrigger = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/color-trigger");
 
 int currBrightness = 50;
+int previousBrightness = 50;
 char startingColor[] = "ffffff";
 
 struct Color {
@@ -76,9 +77,9 @@ void setup()
   mqtt.subscribe(&colorTrigger);
 
   pixels.begin();
-  pixels.setBrightness(70);
-  pixels.fill(pixels.Color(currColor.red, currColor.blue, currColor.green));
-  pixels.show();
+  pixels.setBrightness(100);
+  // pixels.fill(pixels.Color(currColor.red, currColor.blue, currColor.green));
+  setLedColor((Color){255, 255, 255});
 
   tft.begin();
   tft.fillScreen(ILI9341_BLACK);
@@ -119,74 +120,81 @@ void setLedColor(char * colorString) {
 }
 
 void setLedColor(Color newColor) {
-  newColor = calibrateColorBrightness(newColor);
+  Color startingColor = calibrateColorBrightness(currColor, previousBrightness);
+  Color targetColor = calibrateColorBrightness(newColor, currBrightness);
+
+  Serial.println("~~~~~~ Changing color ~~~~~~~");
 
   int numSteps = 20;
-  int redIncrement = (newColor.red - currColor.red) / numSteps;
-  int greenIncrement = (newColor.green - currColor.green) / numSteps;
-  int blueIncrement = (newColor.blue - currColor.blue) / numSteps;
+  int redIncrement = (targetColor.red - startingColor.red) / numSteps;
+  int greenIncrement = (targetColor.green - startingColor.green) / numSteps;
+  int blueIncrement = (targetColor.blue - startingColor.blue) / numSteps;
   int delayTime = 20;
-
 
   for (int i = 0; i < numSteps; i++)
   {
     pixels.fill(pixels.Color(
-        currColor.red + (i * redIncrement),
-        currColor.green + (i * greenIncrement),
-        currColor.blue + (i * blueIncrement)));
+        startingColor.red + (i * redIncrement),
+        startingColor.green + (i * greenIncrement),
+        startingColor.blue + (i * blueIncrement)));
     pixels.show();
     delay(delayTime);
+    Serial.print(startingColor.red + (i * redIncrement));
+    Serial.print(" | ");
+    Serial.print(startingColor.green + (i * greenIncrement));
+    Serial.print(" | ");
+    Serial.println(startingColor.blue + (i * blueIncrement));
   }
 
-  currColor = newColor;
-
   pixels.fill(pixels.Color(
-    currColor.red,
-    currColor.green,
-    currColor.blue
+    targetColor.red,
+    targetColor.green,
+    targetColor.blue
   ));
   pixels.show();
+
+  currColor = newColor;
 }
 
-Color calibrateColorBrightness(Color originalColor) {
+Color calibrateColorBrightness(Color originalColor, int brightness) {
   Color retColor;
 
   if (originalColor.red >= originalColor.blue && originalColor.red >= originalColor.green) {
-    retColor.red = currBrightness;
+    retColor.red = brightness;
     retColor.green = map(
       originalColor.green,
       0, originalColor.red,
-      0, currBrightness
+      0, brightness
     );
     retColor.blue = map(
       originalColor.blue,
       0, originalColor.red,
-      0, currBrightness
+      0, brightness
     );
   } else if (originalColor.green >= originalColor.red && originalColor.green >= originalColor.blue) {
-    retColor.green = currBrightness;
+    retColor.green = brightness;
     retColor.red = map(
       originalColor.red,
       0, originalColor.green,
-      0, currBrightness
+      0, brightness
     );
     retColor.blue = map(
       originalColor.blue,
       0,
       originalColor.green,
-      0, currBrightness
+      0, brightness
     );
   } else if (originalColor.blue >= originalColor.red && originalColor.blue >= originalColor.green) {
-    retColor.blue = currBrightness;
+    retColor.blue = brightness;
     retColor.red = map(
       originalColor.red,
       0, originalColor.blue,
-      0, currBrightness
+      0, brightness
     );
     retColor.green = map(
       originalColor.green,
       0, originalColor.blue,
-      0, currBrightness
+      0, brightness
     );
   }
 
@@ -194,8 +202,21 @@ Color calibrateColorBrightness(Color originalColor) {
 }
 
 void setLedBrightness(char * brightnessString) {
+  previousBrightness = currBrightness;
   currBrightness = map(atoi(brightnessString), 0, 100, 0, 255);
+  if (atoi(brightnessString) == 0) {
+    currBrightness = 0;
+  } else if (currBrightness < 25) {
+    currBrightness = 25;
+  }
   setLedColor(currColor);
+  // Color calibratedColor = calibrateColorBrightness(currColor, currBrightness);
+  // pixels.fill(pixels.Color(
+  //   calibratedColor.red,
+  //   calibratedColor.green,
+  //   calibratedColor.blue
+  // ));
+  previousBrightness = currBrightness;
 }
 
 int StrToHex(char str[]) {
