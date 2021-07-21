@@ -25,7 +25,7 @@
 #define WHITE           "#ffffff"
 #define COOLWHITE       "#ffffff"
 #define WARMWHITE       "#ffb257"
-#define NUMPIXELS       15
+#define NUMPIXELS       45
 
 // set up the neopixel
 Adafruit_NeoPixel pixels(NUMPIXELS, neoPixel, NEO_GRBW + NEO_KHZ800);
@@ -50,14 +50,14 @@ Adafruit_MQTT_Subscribe colorSetting = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNA
 Adafruit_MQTT_Subscribe brightnessSetting = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/brightness");
 Adafruit_MQTT_Subscribe colorTrigger = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/color-trigger");
 
-int currBrightness = 10;
+int currBrightness = 50;
 char startingColor[] = "ffffff";
-int currColor;
 
-struct color {
-  char * colorString;
+struct Color {
   int red, green, blue;
 };
+
+Color currColor = {255, 255, 255};
 
 void setup()
 {
@@ -76,12 +76,8 @@ void setup()
   mqtt.subscribe(&colorTrigger);
 
   pixels.begin();
-  pixels.setBrightness(currBrightness);
-  currColor = StrToHex(startingColor);
-  for (int i = 0; i < NUMPIXELS; i ++) {
-    // pixels.setPixelColor(i, pixels.Color(255, 255, 255));
-    pixels.setPixelColor(i, currColor);
-  }
+  pixels.setBrightness(70);
+  pixels.fill(pixels.Color(currColor.red, currColor.blue, currColor.green));
   pixels.show();
 
   tft.begin();
@@ -101,47 +97,137 @@ void loop() {
     if (subscription == &brightnessSetting) {
       setLedBrightness((char *)brightnessSetting.lastread);
     }
-    if (subscription == &colorTrigger) {
-      if (parseColor((char *)colorTrigger.lastread) > 0) {
-        mqttPublish(colorSettingPublish, parseColor((char *)colorTrigger.lastread));
-      }
+    if (subscription == &colorTrigger && parseColor((char *)colorTrigger.lastread) > 0) {
+      mqttPublish(colorSettingPublish, parseColor((char *)colorTrigger.lastread));
     }
   }
 
   delay (10);
 }
 
-void setLedColor(char * color) {
-  char colorString[6];
-  for (int i = 0; i < 6; i ++) {
-    colorString[i] = color[i + 1];
+void setLedColor(char * colorString) {
+  char red[2] = {colorString[1], colorString[2]};
+  char green[2] = {colorString[3], colorString[4]};
+  char blue[2] = {colorString[5], colorString[6]};
+  Color newColor = {
+    StrToHex(red),
+    StrToHex(green),
+    StrToHex(blue)
+  };
+
+  setLedColor(newColor);
+
+  // int redIncrement = (newColor.red - currColor.red) / 50;
+  // int greenIncrement = (newColor.green - currColor.green) / 50;
+  // int blueIncrement = (newColor.blue - currColor.blue) / 50;
+  // int delayTime = 10;
+
+  // for (int i = 0; i < 50; i ++) {
+  //   pixels.fill(pixels.Color(
+  //     currColor.red + (i * redIncrement),
+  //     currColor.green + (i * greenIncrement),
+  //     currColor.blue + (i * blueIncrement)
+  //   ));
+  //   pixels.show();
+  //   // delay(delayTime);
+  // }
+
+  // currColor = newColor;
+  // pixels.fill(pixels.Color(currColor.red, currColor.blue, currColor.green));
+}
+
+void setLedColor(Color newColor) {
+  // newColor.red *= (currBrightness / 200);
+  // newColor.green *= (currBrightness / 200);
+  // newColor.blue *= (currBrightness / 200);
+  int numSteps = 20;
+
+  int redIncrement = (newColor.red - currColor.red) / numSteps;
+  int greenIncrement = (newColor.green - currColor.green) / numSteps;
+  int blueIncrement = (newColor.blue - currColor.blue) / numSteps;
+  int delayTime = 20;
+
+  for (int i = 0; i < numSteps; i++)
+  {
+    pixels.fill(pixels.Color(
+        currColor.red + (i * redIncrement),
+        currColor.green + (i * greenIncrement),
+        currColor.blue + (i * blueIncrement)));
+    pixels.show();
+    delay(delayTime);
   }
 
-  currColor = StrToHex(colorString);
+  currColor = newColor;
 
-  for (int i = 0; i < NUMPIXELS; i ++) {
-    pixels.setPixelColor(i, currColor);
-  }
+  pixels.fill(pixels.Color(
+    currColor.red,
+    currColor.green,
+    currColor.blue
+  ));
   pixels.show();
 }
 
-void setLedBrightness(char * brightnessString) {
-  int brightness = atoi(brightnessString);
-  // if (i < 10) { i *= 10; }
-  brightness = map(brightness, 0, 100, 0, 255);
-  int numSteps = 50;
-  int interval = brightness - currBrightness;
-  double increment = interval / numSteps;
+Color calibrateColorBrightness(Color originalColor) {
+  Color retColor;
+  Serial.print("Original color: ");
+  Serial.print(originalColor.red);
+  Serial.print(" | ");
+  Serial.print(originalColor.green);
+  Serial.print(" | ");
+  Serial.println(originalColor.blue);
 
-  for (int i = 0; i < numSteps; i ++) {
-    pixels.setBrightness(currBrightness + (increment * i));
-    pixels.show();
-    Serial.println(currBrightness + (increment * i));
-    delay(10);
+  if (originalColor.red >= originalColor.blue && originalColor.red >= originalColor.green) {
+    retColor.red = currBrightness;
+    retColor.green = map(
+      originalColor.green,
+      0, originalColor.red,
+      0, currBrightness
+    );
+    retColor.blue = map(
+      originalColor.blue,
+      0, originalColor.red,
+      0, currBrightness
+    );
+  } else if (originalColor.green >= originalColor.red && originalColor.green >= originalColor.blue) {
+    retColor.green = currBrightness;
+    retColor.red = map(
+      originalColor.red,
+      0, originalColor.green,
+      0, currBrightness
+    );
+    retColor.blue = map(
+      originalColor.blue,
+      0,
+      originalColor.green,
+      0, currBrightness
+    );
+  } else if (originalColor.blue >= originalColor.red && originalColor.blue >= originalColor.green) {
+    retColor.blue = currBrightness;
+    retColor.red = map(
+      originalColor.red,
+      0, originalColor.blue,
+      0, currBrightness
+    );
+    retColor.green = map(
+      originalColor.green,
+      0, originalColor.blue,
+      0, currBrightness
+    );
   }
 
-  currBrightness = brightness;
-  pixels.setBrightness(currBrightness);
+  Serial.print("new color: ");
+  Serial.print(retColor.red);
+  Serial.print(" | ");
+  Serial.print(retColor.green);
+  Serial.print(" | ");
+  Serial.println(retColor.blue);
+
+  return retColor;
+}
+
+void setLedBrightness(char * brightnessString) {
+  currBrightness = map(atoi(brightnessString), 0, 100, 0, 255);
+  setLedColor(calibrateColorBrightness(currColor));
 }
 
 int StrToHex(char str[]) {
