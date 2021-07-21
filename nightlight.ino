@@ -116,36 +116,17 @@ void setLedColor(char * colorString) {
   };
 
   setLedColor(newColor);
-
-  // int redIncrement = (newColor.red - currColor.red) / 50;
-  // int greenIncrement = (newColor.green - currColor.green) / 50;
-  // int blueIncrement = (newColor.blue - currColor.blue) / 50;
-  // int delayTime = 10;
-
-  // for (int i = 0; i < 50; i ++) {
-  //   pixels.fill(pixels.Color(
-  //     currColor.red + (i * redIncrement),
-  //     currColor.green + (i * greenIncrement),
-  //     currColor.blue + (i * blueIncrement)
-  //   ));
-  //   pixels.show();
-  //   // delay(delayTime);
-  // }
-
-  // currColor = newColor;
-  // pixels.fill(pixels.Color(currColor.red, currColor.blue, currColor.green));
 }
 
 void setLedColor(Color newColor) {
-  // newColor.red *= (currBrightness / 200);
-  // newColor.green *= (currBrightness / 200);
-  // newColor.blue *= (currBrightness / 200);
-  int numSteps = 20;
+  newColor = calibrateColorBrightness(newColor);
 
+  int numSteps = 20;
   int redIncrement = (newColor.red - currColor.red) / numSteps;
   int greenIncrement = (newColor.green - currColor.green) / numSteps;
   int blueIncrement = (newColor.blue - currColor.blue) / numSteps;
   int delayTime = 20;
+
 
   for (int i = 0; i < numSteps; i++)
   {
@@ -169,12 +150,6 @@ void setLedColor(Color newColor) {
 
 Color calibrateColorBrightness(Color originalColor) {
   Color retColor;
-  Serial.print("Original color: ");
-  Serial.print(originalColor.red);
-  Serial.print(" | ");
-  Serial.print(originalColor.green);
-  Serial.print(" | ");
-  Serial.println(originalColor.blue);
 
   if (originalColor.red >= originalColor.blue && originalColor.red >= originalColor.green) {
     retColor.red = currBrightness;
@@ -215,19 +190,12 @@ Color calibrateColorBrightness(Color originalColor) {
     );
   }
 
-  Serial.print("new color: ");
-  Serial.print(retColor.red);
-  Serial.print(" | ");
-  Serial.print(retColor.green);
-  Serial.print(" | ");
-  Serial.println(retColor.blue);
-
   return retColor;
 }
 
 void setLedBrightness(char * brightnessString) {
   currBrightness = map(atoi(brightnessString), 0, 100, 0, 255);
-  setLedColor(calibrateColorBrightness(currColor));
+  setLedColor(currColor);
 }
 
 int StrToHex(char str[]) {
