@@ -47,6 +47,7 @@ Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO
 Adafruit_MQTT_Publish motionSensor = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/motionsensor");
 Adafruit_MQTT_Publish photocellStream = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/photocell");
 Adafruit_MQTT_Publish colorSettingPublish = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/color-setting");
+Adafruit_MQTT_Publish brightnessPublish = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/brightness");
 Adafruit_MQTT_Subscribe colorSetting = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/color-setting");
 Adafruit_MQTT_Subscribe brightnessSetting = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/brightness");
 Adafruit_MQTT_Subscribe colorTrigger = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/color-trigger");
@@ -56,7 +57,7 @@ struct Color {
   int red, green, blue;
 };
 
-int currBrightness = 10;
+int currBrightness = 100;
 int minBrightness = 10;
 int nightMaxBrightness = 15;
 int nightBrightness = 0;
@@ -88,7 +89,7 @@ void setup()
   pixels.setBrightness(100);
   setLedColor((Color){255, 255, 255});
 }
-
+int counter = 0;
 void loop() {
   MQTT_connect();
   
@@ -110,13 +111,21 @@ void loop() {
       if (reading == 1) {
         mode = MODE_NIGHTLIGHT;
         Serial.println("turning on night mode");
-        setLedBrightness(0);
+        mqttPublish(brightnessPublish, "0");
       } else {
         mode = MODE_NORMAL;
         Serial.println("turning off night mode");
       }
     }
   }
+
+  if (counter == 10) {
+    char photocellBuffer[3];
+    String(analogRead(PHOTOCELL)).toCharArray(photocellBuffer, 4);
+    mqttPublish(photocellStream, photocellBuffer);
+    counter = 0;
+  }
+  counter ++;
 
   if (digitalRead(PIRSENSOR) && analogRead(PHOTOCELL) < 150 && mode == MODE_NIGHTLIGHT) {
     nightFadeIn();
@@ -261,11 +270,12 @@ char * parseColor(char * colorName) {
 
 void nightFadeIn() {
   Serial.println("fading in");
-  while (nightBrightness < nightMaxBrightness) {
-    nightBrightness ++;
-    setLedBrightness(nightBrightness);
-    delay(100);
-  }
+  setLedBrightness(nightBrightness);
+  // while (nightBrightness < nightMaxBrightness) {
+  //   nightBrightness ++;
+  //   setLedBrightness(nightBrightness);
+  //   delay(100);
+  // }
 
   delay(3000);
 
@@ -279,11 +289,12 @@ void nightFadeIn() {
 
 void nightFadeOut() {
   Serial.println("fading out");
-  while (nightBrightness > 0 && !digitalRead(PIRSENSOR)) {
-    nightBrightness --;
-    setLedBrightness(nightBrightness);
-    delay(100);
-  }
+  setLedBrightness(0);
+  // while (nightBrightness > 0 && !digitalRead(PIRSENSOR)) {
+  //   nightBrightness --;
+  //   setLedBrightness(nightBrightness);
+  //   delay(100);
+  // }
 
   if (digitalRead(PIRSENSOR)) {
     nightFadeIn();
@@ -332,6 +343,9 @@ void mqttPublish(Adafruit_MQTT_Publish stream, char * value) {
   }
   else
   {
-    Serial.println("OK");
+    Serial.print("Published ");
+    Serial.print(value);
+    Serial.print(" to ");
+    Serial.println(stream.getTopic());
   }
 }
