@@ -4,11 +4,11 @@
 #include "Adafruit_MQTT_Client.h"
 #include <WiFi101.h>
 #include <Adafruit_NeoPixel.h>
-#include <Adafruit_GFX.h>
-#include <Adafruit_ILI9341.h>
 
-#define PHOTOCELL       A5
-#define neoPixel        11
+// setup variables
+#define PHOTOCELL       9
+#define NEOPIXEL        11
+#define PIRSENSOR       12
 #define AIO_SERVER      "io.adafruit.com"
 #define AIO_SERVERPORT  1883
 #define WINC_CS         8
@@ -16,9 +16,11 @@
 #define WINC_RST        4
 #define WINC_EN         2
 
+// color definitions
 #define RED             "#ff0000"
 #define GREEN           "#00ff00"
 #define TEAL            "#1aff61"
+#define CYAN            "#00ffff"
 #define BLUE            "#0000ff"
 #define PURPLE          "#9600ff"
 #define MAGENTA         "#ff00e8"
@@ -27,19 +29,18 @@
 #define WARMWHITE       "#ffb257"
 #define NUMPIXELS       45
 
+// operating modes
+#define MODE_NORMAL     0
+#define MODE_NIGHTLIGHT 1
+
 // set up the neopixel
-Adafruit_NeoPixel pixels(NUMPIXELS, neoPixel, NEO_GRBW + NEO_KHZ800);
+Adafruit_NeoPixel pixels(NUMPIXELS, NEOPIXEL, NEO_GRBW + NEO_KHZ800);
 
 // set up the wifi
 char ssid[] = WIFI_SSID;
 char pass[] = WIFI_PASS;
 int status = WL_IDLE_STATUS;
 WiFiClient client;
-
-// set up the display
-#define DISPLAY_CS 9
-#define DISPLAY_DC 10
-Adafruit_ILI9341 tft = Adafruit_ILI9341(DISPLAY_CS, DISPLAY_DC);
 
 // set up the MQTT connection
 Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
@@ -49,67 +50,83 @@ Adafruit_MQTT_Publish colorSettingPublish = Adafruit_MQTT_Publish(&mqtt, AIO_USE
 Adafruit_MQTT_Subscribe colorSetting = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/color-setting");
 Adafruit_MQTT_Subscribe brightnessSetting = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/brightness");
 Adafruit_MQTT_Subscribe colorTrigger = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/color-trigger");
-
-int currBrightness = 50;
-int previousBrightness = 50;
-char startingColor[] = "ffffff";
+Adafruit_MQTT_Subscribe nightMode = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/night-mode");
 
 struct Color {
   int red, green, blue;
 };
 
+int currBrightness = 10;
+int minBrightness = 10;
+int nightMaxBrightness = 15;
+int nightBrightness = 0;
+int previousBrightness = 50;
+int mode = MODE_NORMAL;
+bool motionDetected = false;
+char startingColor[] = "ffffff";
 Color currColor = {255, 255, 255};
 
 void setup()
 {
-  WiFi.setPins(WINC_CS, WINC_IRQ, WINC_RST, WINC_EN);
-
-//  while (!Serial);
   Serial.begin(115200);
+  pinMode(PIRSENSOR, INPUT);
+  pinMode(PHOTOCELL, INPUT);
 
+  WiFi.setPins(WINC_CS, WINC_IRQ, WINC_RST, WINC_EN);
   if (WiFi.status() == WL_NO_SHIELD) {
     Serial.println("No WINC1500");
     while (true);
   }
   Serial.println("wifi ok");
+
   mqtt.subscribe(&colorSetting);
   mqtt.subscribe(&brightnessSetting);
   mqtt.subscribe(&colorTrigger);
+  mqtt.subscribe(&nightMode);
 
   pixels.begin();
   pixels.setBrightness(100);
-  // pixels.fill(pixels.Color(currColor.red, currColor.blue, currColor.green));
   setLedColor((Color){255, 255, 255});
-
-  tft.begin();
-  tft.fillScreen(ILI9341_BLACK);
 }
-
-uint32_t x = 0;
 
 void loop() {
   MQTT_connect();
-
+  
   Adafruit_MQTT_Subscribe *subscription;
-  while((subscription = mqtt.readSubscription(5000))) {
+  while((subscription = mqtt.readSubscription(3000))) {
     if (subscription == &colorSetting) {
       setLedColor((char *)colorSetting.lastread);
     }
     if (subscription == &brightnessSetting) {
+      mode = MODE_NORMAL;
       setLedBrightness((char *)brightnessSetting.lastread);
     }
     if (subscription == &colorTrigger && parseColor((char *)colorTrigger.lastread) > 0) {
       mqttPublish(colorSettingPublish, parseColor((char *)colorTrigger.lastread));
     }
+    if (subscription == &nightMode) {
+      int reading = atoi((char *)nightMode.lastread);
+      Serial.println(reading);
+      if (reading == 1) {
+        mode = MODE_NIGHTLIGHT;
+        Serial.println("turning on night mode");
+        setLedBrightness(0);
+      } else {
+        mode = MODE_NORMAL;
+        Serial.println("turning off night mode");
+      }
+    }
   }
 
-  delay (10);
+  if (digitalRead(PIRSENSOR) && analogRead(PHOTOCELL) < 150 && mode == MODE_NIGHTLIGHT) {
+    nightFadeIn();
+  }
 }
 
 void setLedColor(char * colorString) {
-  char red[2] = {colorString[1], colorString[2]};
-  char green[2] = {colorString[3], colorString[4]};
-  char blue[2] = {colorString[5], colorString[6]};
+  char red[2] = { colorString[1], colorString[2] };
+  char green[2] = { colorString[3], colorString[4] };
+  char blue[2] = { colorString[5], colorString[6] };
   Color newColor = {
     StrToHex(red),
     StrToHex(green),
@@ -195,12 +212,19 @@ Color calibrateColorBrightness(Color originalColor, int brightness) {
 }
 
 void setLedBrightness(char * brightnessString) {
+  setLedBrightness(map(atoi(brightnessString), 0, 100, 0, 255));
+}
+
+void setLedBrightness(int brightness) {
   previousBrightness = currBrightness;
-  currBrightness = map(atoi(brightnessString), 0, 100, 0, 255);
-  if (atoi(brightnessString) == 0) {
+  currBrightness = brightness;
+  if (brightness == 0)
+  {
     currBrightness = 0;
-  } else if (currBrightness < 25) {
-    currBrightness = 25;
+  }
+  else if (currBrightness < minBrightness)
+  {
+    currBrightness = minBrightness;
   }
   setLedColor(currColor);
   previousBrightness = currBrightness;
@@ -214,23 +238,56 @@ char * parseColor(char * colorName) {
   String colorNameString = colorName;
 
   if (!colorNameString.compareTo("blue") || !colorNameString.compareTo("Blue")) {
-      return (char *)BLUE;
+    return (char *)BLUE;
   } else if (!colorNameString.compareTo("red") || !colorNameString.compareTo("Red")) {
-      return (char *)RED;
+    return (char *)RED;
   } else if (!colorNameString.compareTo("green") || !colorNameString.compareTo("Green")) {
-      return (char *)GREEN;
+    return (char *)GREEN;
   } else if (!colorNameString.compareTo("magenta") || !colorNameString.compareTo("Magenta")) {
-      return (char *)MAGENTA;
+    return (char *)MAGENTA;
   } else if (!colorNameString.compareTo("purple") || !colorNameString.compareTo("Purple")) {
-      return (char *)PURPLE;
+    return (char *)PURPLE;
   } else if (!colorNameString.compareTo("teal") || !colorNameString.compareTo("Teal")) {
-      return (char *)TEAL;
+    return (char *)TEAL;
+  } else if (!colorNameString.compareTo("cyan") || !colorNameString.compareTo("Cyan")) {
+    return (char *)CYAN;
   } else if (!colorNameString.compareTo( "Warm White") || !colorNameString.compareTo( "warm white") || !colorNameString.compareTo( "Warm white") || !colorNameString.compareTo( "warm White")) {
-      return (char *)WARMWHITE;
+    return (char *)WARMWHITE;
   } else if (!colorNameString.compareTo( "Cool White") || !colorNameString.compareTo( "cool white") || !colorNameString.compareTo( "Cool white") || !colorNameString.compareTo( "cool White")) {
-      return (char *)COOLWHITE;
+    return (char *)COOLWHITE;
   }
   return colorName;
+}
+
+void nightFadeIn() {
+  Serial.println("fading in");
+  while (nightBrightness < nightMaxBrightness) {
+    nightBrightness ++;
+    setLedBrightness(nightBrightness);
+    delay(100);
+  }
+
+  delay(3000);
+
+  while (digitalRead(PIRSENSOR)) {
+    Serial.println("Still sensing motion");
+    delay(3000);
+  }
+
+  nightFadeOut();
+}
+
+void nightFadeOut() {
+  Serial.println("fading out");
+  while (nightBrightness > 0 && !digitalRead(PIRSENSOR)) {
+    nightBrightness --;
+    setLedBrightness(nightBrightness);
+    delay(100);
+  }
+
+  if (digitalRead(PIRSENSOR)) {
+    nightFadeIn();
+  }
 }
 
 void MQTT_connect() {
