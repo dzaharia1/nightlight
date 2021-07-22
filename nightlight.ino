@@ -49,13 +49,14 @@ Adafruit_MQTT_Publish colorSettingPublish = Adafruit_MQTT_Publish(&mqtt, AIO_USE
 Adafruit_MQTT_Subscribe colorSetting = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/color-setting");
 Adafruit_MQTT_Subscribe brightnessSetting = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/brightness");
 Adafruit_MQTT_Subscribe colorTrigger = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/color-trigger");
+Adafruit_MQTT_Subscribe nightMode = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/night-mode");
 
 int currBrightness = 0;
 int minBrightness = 10;
 int nightMaxBrightness = 15;
 int nightBrightness = 0;
 int previousBrightness = 50;
-int mode = MODE_NIGHTLIGHT;
+int mode = MODE_NORMAL;
 bool motionDetected = false;
 char startingColor[] = "ffffff";
 
@@ -81,6 +82,7 @@ void setup()
   mqtt.subscribe(&colorSetting);
   mqtt.subscribe(&brightnessSetting);
   mqtt.subscribe(&colorTrigger);
+  mqtt.subscribe(&nightMode);
 
   pixels.begin();
   pixels.setBrightness(100);
@@ -96,18 +98,29 @@ void loop() {
       setLedColor((char *)colorSetting.lastread);
     }
     if (subscription == &brightnessSetting) {
+      mode = MODE_NORMAL;
       setLedBrightness((char *)brightnessSetting.lastread);
     }
     if (subscription == &colorTrigger && parseColor((char *)colorTrigger.lastread) > 0) {
       mqttPublish(colorSettingPublish, parseColor((char *)colorTrigger.lastread));
+    }
+    if (subscription == &nightMode) {
+      int reading = atoi((char *)nightMode.lastread);
+      Serial.println(reading);
+      if (reading == 1) {
+        mode = MODE_NIGHTLIGHT;
+        Serial.println("turning on night mode");
+        setLedBrightness(0);
+      } else {
+        mode = MODE_NORMAL;
+        Serial.println("turning off night mode");
+      }
     }
   }
 
   if (digitalRead(PIRSENSOR) && analogRead(PHOTOCELL) < 150 && mode == MODE_NIGHTLIGHT) {
     nightFadeIn();
   }
-
-  Serial.println(analogRead(PHOTOCELL));
 }
 
 void setLedColor(char * colorString) {
@@ -199,11 +212,18 @@ Color calibrateColorBrightness(Color originalColor, int brightness) {
 }
 
 void setLedBrightness(char * brightnessString) {
+  setLedBrightness(map(atoi(brightnessString), 0, 100, 0, 255));
+}
+
+void setLedBrightness(int brightness) {
   previousBrightness = currBrightness;
-  currBrightness = map(atoi(brightnessString), 0, 100, 0, 255);
-  if (atoi(brightnessString) == 0) {
+  currBrightness = brightness;
+  if (brightness == 0)
+  {
     currBrightness = 0;
-  } else if (currBrightness < minBrightness) {
+  }
+  else if (currBrightness < minBrightness)
+  {
     currBrightness = minBrightness;
   }
   setLedColor(currColor);
@@ -239,18 +259,14 @@ char * parseColor(char * colorName) {
 
 void nightFadeIn() {
   Serial.println("fading in");
-  // for (i = 0; i < nightMaxBrightness; i ++) {
-  //   pixels.fill(pixels.Color(0, 0, 0, i));
-  //   pixels.show();
-  //   Serial.println(i);
-  //   delay(200);
-  // }
   while (nightBrightness < nightMaxBrightness) {
     nightBrightness ++;
-    pixels.fill(pixels.Color(0, 0, 0, nightBrightness));
-    pixels.show();
+    setLedBrightness(nightBrightness);
     delay(100);
   }
+
+  delay(3000);
+
   while (digitalRead(PIRSENSOR)) {
     Serial.println("Still sensing motion");
     delay(3000);
@@ -263,8 +279,7 @@ void nightFadeOut() {
   Serial.println("fading out");
   while (nightBrightness > 0 && !digitalRead(PIRSENSOR)) {
     nightBrightness --;
-    pixels.fill(pixels.Color(0, 0, 0, nightBrightness));
-    pixels.show();
+    setLedBrightness(nightBrightness);
     delay(100);
   }
 
