@@ -32,6 +32,7 @@
 // operating modes
 #define MODE_NORMAL     0
 #define MODE_NIGHTLIGHT 1
+#define MODE_PARTY      2
 
 // set up the neopixel
 Adafruit_NeoPixel pixels(NUMPIXELS, NEOPIXEL, NEO_GRBW + NEO_KHZ800);
@@ -65,7 +66,7 @@ int previousBrightness = 50;
 int mode = MODE_NORMAL;
 bool motionDetected = false;
 char startingColor[] = "ffffff";
-Color currColor = {255, 255, 255};
+Color currColor = { 255, 255, 255 };
 
 void setup()
 {
@@ -86,21 +87,29 @@ void setup()
   mqtt.subscribe(&nightMode);
 
   pixels.begin();
-  pixels.setBrightness(100);
-  setLedColor((Color){255, 255, 255});
+  pixels.setBrightness(110);
+  setLedColor(WARMWHITE);
 }
+
 int counter = 0;
+
 void loop() {
   MQTT_connect();
   
   Adafruit_MQTT_Subscribe *subscription;
   while((subscription = mqtt.readSubscription(3000))) {
     if (subscription == &colorSetting) {
+      mode = MODE_NORMAL;
       setLedColor((char *)colorSetting.lastread);
     }
     if (subscription == &brightnessSetting) {
-      mode = MODE_NORMAL;
-      setLedBrightness((char *)brightnessSetting.lastread);
+      if (mode == MODE_NIGHTLIGHT) {
+        mode = MODE_NORMAL;
+      } else if (mode == MODE_PARTY) {
+        currBrightness = map(atoi((char *)brightnessSetting.lastread), 0, 100, 0, 255);
+      } else {
+        setLedBrightness((char *)brightnessSetting.lastread);
+      }
     }
     if (subscription == &colorTrigger && parseColor((char *)colorTrigger.lastread) > 0) {
       mqttPublish(colorSettingPublish, parseColor((char *)colorTrigger.lastread));
@@ -112,24 +121,35 @@ void loop() {
         mode = MODE_NIGHTLIGHT;
         Serial.println("turning on night mode");
         mqttPublish(brightnessPublish, "0");
+      } else if (reading == 2) {
+        mode = MODE_PARTY;
+        Serial.println("turning on party mode");
       } else {
         mode = MODE_NORMAL;
-        Serial.println("turning off night mode");
+        Serial.println("turning on normal mode");
       }
     }
   }
 
-  if (counter == 10) {
+  if (counter % 10 == 0) {
     char photocellBuffer[3];
     String(analogRead(PHOTOCELL)).toCharArray(photocellBuffer, 4);
     mqttPublish(photocellStream, photocellBuffer);
-    counter = 0;
   }
   counter ++;
+
+  if (counter == 256) { counter = 0; }
 
   if (digitalRead(PIRSENSOR) && analogRead(PHOTOCELL) < 150 && mode == MODE_NIGHTLIGHT) {
     nightFadeIn();
   }
+  
+  if (mode == MODE_PARTY) {
+    pixels.fill(pixels.gamma32(pixels.ColorHSV((counter % 256) * 256, 255, currBrightness)));
+    pixels.show();
+  }
+
+  Serial.println(currBrightness);
 }
 
 void setLedColor(char * colorString) {
