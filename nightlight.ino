@@ -18,6 +18,7 @@
 
 // color definitions
 #define RED             "#ff0000"
+#define PEACH           "#ff3700"
 #define GREEN           "#00ff00"
 #define TEAL            "#00ffa6"
 #define CYAN            "#00ffff"
@@ -32,7 +33,8 @@
 // operating modes
 #define MODE_NORMAL     0
 #define MODE_NIGHTLIGHT 1
-#define MODE_PARTY      2
+#define MODE_CHILL      2
+#define MODE_PARTY      3
 
 // set up the neopixel
 Adafruit_NeoPixel pixels(NUMPIXELS, NEOPIXEL, NEO_GRBW + NEO_KHZ800);
@@ -62,6 +64,7 @@ int currBrightness = 100;
 int minBrightness = 10;
 int nightBrightness = 15;
 int previousBrightness = 50;
+int readTimeout = 500;
 int mode = MODE_NORMAL;
 bool motionDetected = false;
 char startingColor[] = "ffffff";
@@ -95,8 +98,23 @@ int counter = 0;
 void loop() {
   MQTT_connect();
   
+  checkMode(500);
+
+  if (mode == MODE_NIGHTLIGHT) {
+    setLedBrightness(0);
+    if (digitalRead(PIRSENSOR) && analogRead(PHOTOCELL) < 160) {
+      nightFadeIn();
+    }
+  } else if (mode == MODE_CHILL) {
+    party(65536/2);
+  } else if (mode == MODE_PARTY) {
+    party(256);
+  }
+}
+
+void checkMode (int timeout) {
   Adafruit_MQTT_Subscribe *subscription;
-  while((subscription = mqtt.readSubscription(3000))) {
+  while (subscription = mqtt.readSubscription(timeout)){
     if (subscription == &colorFeed) {
       mode = MODE_NORMAL;
       setLedColor((char *)colorFeed.lastread);
@@ -104,9 +122,11 @@ void loop() {
     if (subscription == &brightnessFeed) {
       if (mode == MODE_NIGHTLIGHT) {
         mode = MODE_NORMAL;
-      } else if (mode == MODE_PARTY) {
+      }
+      else if (mode == MODE_CHILL || mode == MODE_PARTY) {
         currBrightness = map(atoi((char *)brightnessFeed.lastread), 0, 100, 0, 255);
-      } else {
+      }
+      else {
         setLedBrightness((char *)brightnessFeed.lastread);
       }
     }
@@ -114,32 +134,25 @@ void loop() {
       mqttPublish(colorFeedPublish, parseColor((char *)colorTrigger.lastread));
     }
     if (subscription == &modeFeed) {
-      int reading = atoi((char *)modeFeed.lastread);
-      Serial.println(reading);
-      if (reading == 1) {
-        mode = MODE_NIGHTLIGHT;
-        Serial.println("turning on night mode");
-        setLedBrightness(0);
-      } else if (reading == 2) {
-        mode = MODE_PARTY;
-        Serial.println("turning on party mode");
-      } else {
-        mode = MODE_NORMAL;
-        Serial.println("turning on normal mode");
-      }
+      mode = atoi((char *)modeFeed.lastread);
+      Serial.println(mode);
     }
   }
+}
 
-
-  if (digitalRead(PIRSENSOR) && analogRead(PHOTOCELL) < 160 && mode == MODE_NIGHTLIGHT) {
-    nightFadeIn();
-  }
-  
-  if (mode == MODE_PARTY) {
-    counter ++;
-    if (counter == 256) { counter = 0; }
-    pixels.fill(pixels.ColorHSV((counter % 256) * 256, 255, currBrightness));
+void party(int timing) {
+  int currMode = mode;
+  for (int i = 0; i < timing; i ++) {
+    pixels.fill(pixels.ColorHSV(i * (65536 / timing), 255, currBrightness));
     pixels.show();
+    Serial.println(i);
+    if (i % 128 == 0) {
+      checkMode(50);
+      if (currMode != mode) {
+        return;
+      }
+    }
+    delay(10);
   }
 }
 
@@ -280,7 +293,6 @@ char * parseColor(char * colorName) {
 }
 
 void nightFadeIn() {
-  // setLedBrightness(nightBrightness);
   Serial.println("Fading in");
   while (currBrightness < nightBrightness) {
     currBrightness ++;
