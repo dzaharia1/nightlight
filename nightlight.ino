@@ -18,16 +18,18 @@
 
 // color definitions
 #define RED             "#ff0000"
+#define LEMONADE        "#ff0018"
 #define PEACH           "#ff3700"
 #define GREEN           "#00ff00"
-#define TEAL            "#00ffa6"
+#define TEAL            "#00ff93"
 #define CYAN            "#00ffff"
 #define BLUE            "#0000ff"
 #define PURPLE          "#9600ff"
 #define MAGENTA         "#ff00e8"
 #define WHITE           "#ffffff"
+#define YELLOW          "#ffb900"
 #define COOLWHITE       "#eeeeee"
-#define WARMWHITE       "#ffcc90"
+#define WARMWHITE       "#ff7e2b"
 #define NUMPIXELS       45
 
 // operating modes
@@ -60,10 +62,10 @@ struct Color {
   int red, green, blue;
 };
 
-int currBrightness = 100;
+int currBrightness = 255;
 int minBrightness = 10;
 int nightBrightness = 15;
-int previousBrightness = 50;
+int previousBrightness = currBrightness;
 int readTimeout = 500;
 int mode = MODE_NORMAL;
 bool motionDetected = false;
@@ -89,8 +91,10 @@ void setup()
   mqtt.subscribe(&modeFeed);
 
   pixels.begin();
-  pixels.setBrightness(110);
-  setLedColor(WARMWHITE);
+  pixels.setBrightness(255);
+  // setLedColor(WARMWHITE);
+  pixels.fill(pixels.Color(0, 0, 0, 255));
+  pixels.show();
 }
 
 int counter = 0;
@@ -116,7 +120,7 @@ void checkMode (int timeout) {
   Adafruit_MQTT_Subscribe *subscription;
   while (subscription = mqtt.readSubscription(timeout)){
     if (subscription == &colorFeed) {
-      mode = MODE_NORMAL;
+      if (mode != MODE_NIGHTLIGHT) { mode = MODE_NORMAL; }
       setLedColor((char *)colorFeed.lastread);
     }
     if (subscription == &brightnessFeed) {
@@ -135,6 +139,9 @@ void checkMode (int timeout) {
     }
     if (subscription == &modeFeed) {
       mode = atoi((char *)modeFeed.lastread);
+      if (mode == MODE_NORMAL) {
+        setLedColor(currColor);
+      }
       Serial.println(mode);
     }
   }
@@ -274,6 +281,10 @@ char * parseColor(char * colorName) {
     return (char *)BLUE;
   } else if (!colorNameString.compareTo("red") || !colorNameString.compareTo("Red")) {
     return (char *)RED;
+  } else if (!colorNameString.compareTo("yellow") || !colorNameString.compareTo("Yellow")){
+    return (char *)YELLOW;
+  } else if (!colorNameString.compareTo("lemonade") || !colorNameString.compareTo("Lemonade")) {
+    return (char *)LEMONADE;
   } else if (!colorNameString.compareTo("green") || !colorNameString.compareTo("Green")) {
     return (char *)GREEN;
   } else if (!colorNameString.compareTo("magenta") || !colorNameString.compareTo("Magenta")) {
