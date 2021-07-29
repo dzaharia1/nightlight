@@ -125,7 +125,7 @@ void checkMode (int timeout) {
     }
     if (subscription == &brightnessFeed) {
       if (mode == MODE_NIGHTLIGHT) {
-        mode = MODE_NORMAL;
+        nightBrightness = map(atoi((char *)brightnessFeed.lastread), 0, 100, 0, 255);
       }
       else if (mode == MODE_CHILL || mode == MODE_PARTY) {
         currBrightness = map(atoi((char *)brightnessFeed.lastread), 0, 100, 0, 255);
