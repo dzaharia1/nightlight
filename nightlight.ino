@@ -317,7 +317,7 @@ void nightFadeIn() {
     delay(200);
   }
 
-  delay(15000);
+  delay(10000);
 
   while (digitalRead(PIRSENSOR)) {
     Serial.println("Still sensing motion");
