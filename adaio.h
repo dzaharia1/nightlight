@@ -67,41 +67,33 @@ void mqttPublish(Adafruit_MQTT_Publish stream, char *value)
 void checkMode(int timeout)
 {
     Adafruit_MQTT_Subscribe *subscription;
-    while (subscription = mqtt.readSubscription(timeout))
-    {
-        if (subscription == &colorFeed)
-        {
-            if (mode != MODE_NIGHTLIGHT)
-            {
+    while (subscription = mqtt.readSubscription(timeout)) {
+        if (subscription == &colorFeed) {
+            if (mode != MODE_NIGHTLIGHT) {
                 mode = MODE_NORMAL;
             }
             setLedColor((char *)colorFeed.lastread);
         }
-        if (subscription == &brightnessFeed)
-        {
-            if (mode == MODE_NIGHTLIGHT)
-            {
+        if (subscription == &brightnessFeed) {
+            if (mode == MODE_NIGHTLIGHT) {
                 nightBrightness = map(atoi((char *)brightnessFeed.lastread), 0, 100, 0, 255);
             }
-            else if (mode == MODE_CHILL || mode == MODE_PARTY)
-            {
+            else if (mode == MODE_CHILL || mode == MODE_PARTY) {
                 currBrightness = map(atoi((char *)brightnessFeed.lastread), 0, 100, 0, 255);
             }
-            else
-            {
+            else {
                 setLedBrightness((char *)brightnessFeed.lastread);
             }
         }
-        if (subscription == &colorTrigger && parseColor((char *)colorTrigger.lastread) > 0)
-        {
+        if (subscription == &colorTrigger && parseColor((char *)colorTrigger.lastread) > 0) {
             mqttPublish(colorFeedPublish, parseColor((char *)colorTrigger.lastread));
         }
-        if (subscription == &modeFeed)
-        {
+        if (subscription == &modeFeed) {
             mode = atoi((char *)modeFeed.lastread);
-            if (mode == MODE_NORMAL)
-            {
+            if (mode == MODE_NORMAL) {
                 setLedColor(currColor);
+            } else if (mode == MODE_CHILL || mode == MODE_PARTY) {
+                setLedBrightness(50);
             }
             Serial.println(mode);
         }

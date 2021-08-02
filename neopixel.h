@@ -23,21 +23,14 @@
 #define MODE_CHILL 2
 #define MODE_PARTY 3
 
-struct Color
-{
-    int red, green, blue;
-};
+struct Color { int red, green, blue; };
 
 int currBrightness = 255;
 int minBrightness = 10;
 int nightBrightness = 15;
 int previousBrightness = currBrightness;
 int mode = MODE_NORMAL;
-Color currColor = {
-    255,
-    255,
-    255
-};
+Color currColor = { 255, 255, 255 };
 
 // set up the neopixel
 Adafruit_NeoPixel pixels(NUMPIXELS, NEOPIXEL, NEO_GRBW + NEO_KHZ800);
@@ -49,7 +42,6 @@ void startNeoPixel() {
     pixels.fill(pixels.Color(0, 0, 0, 255));
     pixels.show();
 }
-
 
 int StrToHex(char str[])
 {
