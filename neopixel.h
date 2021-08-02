@@ -23,7 +23,7 @@
 #define MODE_CHILL 2
 #define MODE_PARTY 3
 
-struct Color { int red, green, blue; };
+struct Color {int red,green,blue;};
 
 int currBrightness = 255;
 int minBrightness = 10;
