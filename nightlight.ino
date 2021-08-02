@@ -82,19 +82,16 @@ void nightFadeOut() {
   }
 }
 
-void party(int timing)
-{
+void party(int timing) {
     int currMode = mode;
-    for (int i = 0; i < timing; i++)
-    {
+    
+    for (int i = 0; i < timing; i++) {
         pixels.fill(pixels.ColorHSV(i * (65536 / timing), 255, currBrightness));
         pixels.show();
         Serial.println(i);
-        if (i % 128 == 0)
-        {
+        if (i % 128 == 0) {
             checkMode(50);
-            if (currMode != mode)
-            {
+            if (currMode != mode) {
                 return;
             }
         }

@@ -49,14 +49,11 @@ void connectionSetup() {
     mqtt.subscribe(&modeFeed);
 }
 
-void mqttPublish(Adafruit_MQTT_Publish stream, char *value)
-{
-    if (!stream.publish(value))
-    {
+void mqttPublish(Adafruit_MQTT_Publish stream, char *value) {
+    if (!stream.publish(value)) {
         Serial.println("Failed");
     }
-    else
-    {
+    else {
         Serial.print("Published ");
         Serial.print(value);
         Serial.print(" to ");
@@ -64,8 +61,7 @@ void mqttPublish(Adafruit_MQTT_Publish stream, char *value)
     }
 }
 
-void checkMode(int timeout)
-{
+void checkMode(int timeout) {
     Adafruit_MQTT_Subscribe *subscription;
     while (subscription = mqtt.readSubscription(timeout)) {
         if (subscription == &colorFeed) {
@@ -105,8 +101,7 @@ void MQTT_connect()
     int8_t ret;
 
     // attempt to connect to Wifi network:
-    while (WiFi.status() != WL_CONNECTED)
-    {
+    while (WiFi.status() != WL_CONNECTED) {
         Serial.print("Attempting to connect to SSID: ");
         Serial.println(ssid);
         // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
@@ -114,23 +109,20 @@ void MQTT_connect()
 
         // wait 10 seconds for connection:
         uint8_t timeout = 10;
-        while (timeout && (WiFi.status() != WL_CONNECTED))
-        {
+        while (timeout && (WiFi.status() != WL_CONNECTED)) {
             timeout--;
             delay(1000);
         }
     }
 
     // Stop if already connected.
-    if (mqtt.connected())
-    {
+    if (mqtt.connected()) {
         return;
     }
 
     Serial.print("Connecting to MQTT... ");
 
-    while ((ret = mqtt.connect()) != 0)
-    { // connect will return 0 for connected
+    while ((ret = mqtt.connect()) != 0) { // connect will return 0 for connected
         Serial.println(mqtt.connectErrorString(ret));
         Serial.println("Retrying MQTT connection in 5 seconds...");
         mqtt.disconnect();

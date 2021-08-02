@@ -43,17 +43,14 @@ void startNeoPixel() {
     pixels.show();
 }
 
-int StrToHex(char str[])
-{
+int StrToHex(char str[]) {
     return (int)strtol(str, 0, 16);
 }
 
-Color calibrateColorBrightness(Color originalColor, int brightness)
-{
+Color calibrateColorBrightness(Color originalColor, int brightness) {
     Color retColor;
 
-    if (originalColor.red >= originalColor.blue && originalColor.red >= originalColor.green)
-    {
+    if (originalColor.red >= originalColor.blue && originalColor.red >= originalColor.green) {
         retColor.red = brightness;
         retColor.green = map(
             originalColor.green,
@@ -64,8 +61,7 @@ Color calibrateColorBrightness(Color originalColor, int brightness)
             0, originalColor.red,
             0, brightness);
     }
-    else if (originalColor.green >= originalColor.red && originalColor.green >= originalColor.blue)
-    {
+    else if (originalColor.green >= originalColor.red && originalColor.green >= originalColor.blue) {
         retColor.green = brightness;
         retColor.red = map(
             originalColor.red,
@@ -77,8 +73,7 @@ Color calibrateColorBrightness(Color originalColor, int brightness)
             originalColor.green,
             0, brightness);
     }
-    else if (originalColor.blue >= originalColor.red && originalColor.blue >= originalColor.green)
-    {
+    else if (originalColor.blue >= originalColor.red && originalColor.blue >= originalColor.green) {
         retColor.blue = brightness;
         retColor.red = map(
             originalColor.red,
@@ -104,8 +99,7 @@ void setLedColor(Color newColor)
     int blueIncrement = (targetColor.blue - startingColor.blue) / numSteps;
     int delayTime = 20;
 
-    for (int i = 0; i < numSteps; i++)
-    {
+    for (int i = 0; i < numSteps; i++) {
         pixels.fill(pixels.Color(
             startingColor.red + (i * redIncrement),
             startingColor.green + (i * greenIncrement),
@@ -140,12 +134,10 @@ void setLedBrightness(int brightness)
 {
     previousBrightness = currBrightness;
     currBrightness = brightness;
-    if (brightness == 0)
-    {
+    if (brightness == 0) {
         currBrightness = 0;
     }
-    else if (currBrightness < minBrightness)
-    {
+    else if (currBrightness < minBrightness) {
         currBrightness = minBrightness;
     }
     setLedColor(currColor);
@@ -161,48 +153,37 @@ char *parseColor(char *colorName)
 {
     String colorNameString = colorName;
 
-    if (!colorNameString.compareTo("blue") || !colorNameString.compareTo("Blue"))
-    {
+    if (!colorNameString.compareTo("blue") || !colorNameString.compareTo("Blue")) {
         return (char *)BLUE;
     }
-    else if (!colorNameString.compareTo("red") || !colorNameString.compareTo("Red"))
-    {
+    else if (!colorNameString.compareTo("red") || !colorNameString.compareTo("Red")) {
         return (char *)RED;
     }
-    else if (!colorNameString.compareTo("yellow") || !colorNameString.compareTo("Yellow"))
-    {
+    else if (!colorNameString.compareTo("yellow") || !colorNameString.compareTo("Yellow")) {
         return (char *)YELLOW;
     }
-    else if (!colorNameString.compareTo("lemonade") || !colorNameString.compareTo("Lemonade"))
-    {
+    else if (!colorNameString.compareTo("lemonade") || !colorNameString.compareTo("Lemonade")) {
         return (char *)LEMONADE;
     }
-    else if (!colorNameString.compareTo("green") || !colorNameString.compareTo("Green"))
-    {
+    else if (!colorNameString.compareTo("green") || !colorNameString.compareTo("Green")) {
         return (char *)GREEN;
     }
-    else if (!colorNameString.compareTo("magenta") || !colorNameString.compareTo("Magenta"))
-    {
+    else if (!colorNameString.compareTo("magenta") || !colorNameString.compareTo("Magenta")) {
         return (char *)MAGENTA;
     }
-    else if (!colorNameString.compareTo("purple") || !colorNameString.compareTo("Purple"))
-    {
+    else if (!colorNameString.compareTo("purple") || !colorNameString.compareTo("Purple")) {
         return (char *)PURPLE;
     }
-    else if (!colorNameString.compareTo("teal") || !colorNameString.compareTo("Teal"))
-    {
+    else if (!colorNameString.compareTo("teal") || !colorNameString.compareTo("Teal")) {
         return (char *)TEAL;
     }
-    else if (!colorNameString.compareTo("cyan") || !colorNameString.compareTo("Cyan"))
-    {
+    else if (!colorNameString.compareTo("cyan") || !colorNameString.compareTo("Cyan")) {
         return (char *)CYAN;
     }
-    else if (!colorNameString.compareTo("Warm White") || !colorNameString.compareTo("warm white") || !colorNameString.compareTo("Warm white") || !colorNameString.compareTo("warm White"))
-    {
+    else if (!colorNameString.compareTo("Warm White") || !colorNameString.compareTo("warm white") || !colorNameString.compareTo("Warm white") || !colorNameString.compareTo("warm White")) {
         return (char *)WARMWHITE;
     }
-    else if (!colorNameString.compareTo("Cool White") || !colorNameString.compareTo("cool white") || !colorNameString.compareTo("Cool white") || !colorNameString.compareTo("cool White"))
-    {
+    else if (!colorNameString.compareTo("Cool White") || !colorNameString.compareTo("cool white") || !colorNameString.compareTo("Cool white") || !colorNameString.compareTo("cool White")) {
         return (char *)COOLWHITE;
     }
     return colorName;
