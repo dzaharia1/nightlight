@@ -7,7 +7,7 @@
 #define PIRSENSOR       12
 
 bool motionDetected = false;
-int nightBrightness = 3;
+int dayBrightness;
 
 void setup()
 {
@@ -21,11 +21,9 @@ void setup()
 
 void loop() {
   MQTT_connect();
-  
   checkMode(500);
 
   if (mode == MODE_NIGHTLIGHT) {
-    nightFadeOut();
     if (digitalRead(PIRSENSOR) && analogRead(PHOTOCELL) < 160) {
       nightFadeIn();
     }
@@ -33,6 +31,44 @@ void loop() {
     party(65536/2);
   } else if (mode == MODE_PARTY) {
     party(256);
+  }
+}
+void checkMode(int timeout)
+{
+  Adafruit_MQTT_Subscribe *subscription;
+  while (subscription = mqtt.readSubscription(timeout)) {
+    if (subscription == &colorFeed) {
+      if (mode != MODE_NIGHTLIGHT) {
+        mode = MODE_NORMAL;
+      }
+      setLedColor((char *)colorFeed.lastread);
+    } else if (subscription == &brightnessFeed) {
+      if (mode == MODE_NIGHTLIGHT) {
+        nightBrightness = map(atoi((char *)brightnessFeed.lastread), 0, 100, 0, 255);
+      } else if (mode == MODE_CHILL || mode == MODE_PARTY)
+      {
+        currBrightness = map(atoi((char *)brightnessFeed.lastread), 0, 100, 0, 255);
+      } else {
+        setLedBrightness((char *)brightnessFeed.lastread);
+      }
+    } else if (subscription == &colorTrigger && parseColor((char *)colorTrigger.lastread) > 0) {
+      mqttPublish(colorFeedPublish, parseColor((char *)colorTrigger.lastread));
+    } else if (subscription == &modeFeed) {
+      if (atoi((char *)modeFeed.lastread) == MODE_NORMAL && mode == MODE_NIGHTLIGHT) {
+        setLedBrightness(dayBrightness);
+      }
+      mode = atoi((char *)modeFeed.lastread);
+      if (mode == MODE_NORMAL) {
+        setLedColor(currColor);
+      } else if (mode == MODE_NIGHTLIGHT) {
+        dayBrightness = currBrightness;
+        setLedBrightness(0);
+      }
+      else if (mode == MODE_CHILL || mode == MODE_PARTY) {
+        setLedBrightness(50);
+      }
+      Serial.println(mode);
+    }
   }
 }
 
@@ -57,10 +93,10 @@ void nightFadeIn() {
     delay(3000);
   }
 
-  nightFadeOut();
+  nightFadeOut(true);
 }
 
-void nightFadeOut() {
+void nightFadeOut(bool watchMotion) {
   Serial.println("fading out");
   while (currBrightness > 0) {
     currBrightness --;
@@ -71,11 +107,9 @@ void nightFadeOut() {
       calibratedColor.blue
     ));
     pixels.show();
-    Serial.print("Fade progress is ");
-    Serial.println(currBrightness);
     delay(200);
 
-    if (digitalRead(PIRSENSOR)) {
+    if (digitalRead(PIRSENSOR) && watchMotion) {
       Serial.println("oop faded out too soon!");
       nightFadeIn();
       break;

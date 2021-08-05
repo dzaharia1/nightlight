@@ -27,6 +27,7 @@ struct Color {int red,green,blue;};
 
 int currBrightness = 255;
 int minBrightness = 10;
+int nightBrightness = 3;
 int previousBrightness = currBrightness;
 int mode = MODE_NORMAL;
 Color currColor = { 255, 255, 255 };
@@ -38,7 +39,7 @@ void startNeoPixel() {
     pixels.begin();
     pixels.setBrightness(255);
     // setLedColor(WARMWHITE);
-    pixels.fill(pixels.Color(0, 0, 0, 255));
+    pixels.fill(pixels.Color(255, 255, 255));
     pixels.show();
 }
 
