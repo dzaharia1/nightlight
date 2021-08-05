@@ -53,8 +53,7 @@ void checkMode(int timeout)
     } else if (subscription == &brightnessFeed) {
       if (mode == MODE_NIGHTLIGHT) {
         nightBrightness = map(atoi((char *)brightnessFeed.lastread), 0, 100, 0, 255);
-      } else if (mode == MODE_CHILL || mode == MODE_PARTY)
-      {
+      } else if (mode == MODE_CHILL || mode == MODE_PARTY) {
         currBrightness = map(atoi((char *)brightnessFeed.lastread), 0, 100, 0, 255);
       } else {
         setLedBrightness((char *)brightnessFeed.lastread);
@@ -62,17 +61,17 @@ void checkMode(int timeout)
     } else if (subscription == &colorTrigger && parseColor((char *)colorTrigger.lastread) > 0) {
       mqttPublish(colorFeedPublish, parseColor((char *)colorTrigger.lastread));
     } else if (subscription == &modeFeed) {
-      if (atoi((char *)modeFeed.lastread) == MODE_NORMAL && mode == MODE_NIGHTLIGHT) {
+      if (atoi((char *)modeFeed.lastread) != MODE_NIGHTLIGHT && mode == MODE_NIGHTLIGHT) {
         setLedBrightness(dayBrightness);
       }
+
       mode = atoi((char *)modeFeed.lastread);
+
       if (mode == MODE_NORMAL) {
         setLedColor(currColor);
       } else if (mode == MODE_NIGHTLIGHT) {
         dayBrightness = currBrightness;
         setLedBrightness(0);
-      } else if (mode == MODE_CHILL || mode == MODE_PARTY) {
-        setLedBrightness(50);
       } else if (mode == MODE_LAMP) {
         turnOnLamp();
       }
@@ -132,7 +131,6 @@ void party(int timing) {
     for (int i = 0; i < timing; i++) {
         pixels.fill(pixels.ColorHSV(i * (65536 / timing), 255, currBrightness));
         pixels.show();
-        Serial.println(i);
         if (i % 128 == 0) {
             checkMode(50);
             if (currMode != mode) {
