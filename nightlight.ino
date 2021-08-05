@@ -6,8 +6,16 @@
 #define PHOTOCELL       9
 #define PIRSENSOR       12
 
+// operating modes
+#define MODE_NORMAL     0
+#define MODE_NIGHTLIGHT 1
+#define MODE_CHILL      2
+#define MODE_PARTY      3
+#define MODE_LAMP       4
+
 bool motionDetected = false;
 int dayBrightness;
+int mode = MODE_NORMAL;
 
 void setup()
 {
@@ -63,9 +71,10 @@ void checkMode(int timeout)
       } else if (mode == MODE_NIGHTLIGHT) {
         dayBrightness = currBrightness;
         setLedBrightness(0);
-      }
-      else if (mode == MODE_CHILL || mode == MODE_PARTY) {
+      } else if (mode == MODE_CHILL || mode == MODE_PARTY) {
         setLedBrightness(50);
+      } else if (mode == MODE_LAMP) {
+        turnOnLamp();
       }
       Serial.println(mode);
     }

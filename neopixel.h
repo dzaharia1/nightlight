@@ -3,25 +3,20 @@
 #define NEOPIXEL 11
 
 // color definitions
-#define RED "#ff0000"
-#define LEMONADE "#ff0018"
-#define PEACH "#ff3700"
-#define GREEN "#00ff00"
-#define TEAL "#00ff93"
-#define CYAN "#00ffff"
-#define BLUE "#0000ff"
-#define PURPLE "#9600ff"
-#define MAGENTA "#ff00e8"
-#define WHITE "#ffffff"
-#define YELLOW "#ffb900"
-#define COOLWHITE "#eeeeee"
-#define WARMWHITE "#ff7e2b"
-#define NUMPIXELS 45
-
-#define MODE_NORMAL 0
-#define MODE_NIGHTLIGHT 1
-#define MODE_CHILL 2
-#define MODE_PARTY 3
+#define RED         "#ff0000"
+#define LEMONADE    "#ff0018"
+#define PEACH       "#ff3700"
+#define GREEN       "#00ff00"
+#define TEAL        "#00ff93"
+#define CYAN        "#00ffff"
+#define BLUE        "#0000ff"
+#define PURPLE      "#9600ff"
+#define MAGENTA     "#ff00e8"
+#define WHITE       "#ffffff"
+#define YELLOW      "#ffb900"
+#define COOLWHITE   "#eeeeee"
+#define WARMWHITE   "#ff7e2b"
+#define NUMPIXELS   45
 
 struct Color {int red,green,blue;};
 
@@ -29,7 +24,6 @@ int currBrightness = 255;
 int minBrightness = 10;
 int nightBrightness = 3;
 int previousBrightness = currBrightness;
-int mode = MODE_NORMAL;
 Color currColor = { 255, 255, 255 };
 
 // set up the neopixel
@@ -187,4 +181,9 @@ char *parseColor(char *colorName)
         return (char *)COOLWHITE;
     }
     return colorName;
+}
+
+void turnOnLamp() {
+    pixels.fill(pixels.Color(255, 255, 255, 255));
+    pixels.show();
 }

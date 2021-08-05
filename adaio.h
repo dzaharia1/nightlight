@@ -11,12 +11,6 @@
 #define WINC_RST 4
 #define WINC_EN 2
 
-// operating modes
-#define MODE_NORMAL 0
-#define MODE_NIGHTLIGHT 1
-#define MODE_CHILL 2
-#define MODE_PARTY 3
-
 // set up the wifi
 char ssid[] = WIFI_SSID;
 char pass[] = WIFI_PASS;
