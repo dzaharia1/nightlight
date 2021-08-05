@@ -1,6 +1,6 @@
 #include <Adafruit_NeoPixel.h>
 
-#define NEOPIXEL 9
+#define NEOPIXEL 11
 
 // color definitions
 #define RED "#ff0000"

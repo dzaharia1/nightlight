@@ -3,7 +3,7 @@
 #include "adaio.h"
 
 // setup variables
-#define PHOTOCELL       10
+#define PHOTOCELL       9
 #define PIRSENSOR       12
 
 bool motionDetected = false;
