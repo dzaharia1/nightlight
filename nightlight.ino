@@ -7,6 +7,7 @@
 #define PIRSENSOR       12
 
 bool motionDetected = false;
+int nightBrightness = 3;
 
 void setup()
 {
@@ -24,7 +25,7 @@ void loop() {
   checkMode(500);
 
   if (mode == MODE_NIGHTLIGHT) {
-    setLedBrightness(0);
+    nightFadeOut();
     if (digitalRead(PIRSENSOR) && analogRead(PHOTOCELL) < 160) {
       nightFadeIn();
     }

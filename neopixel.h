@@ -27,7 +27,6 @@ struct Color {int red,green,blue;};
 
 int currBrightness = 255;
 int minBrightness = 10;
-int nightBrightness = 15;
 int previousBrightness = currBrightness;
 int mode = MODE_NORMAL;
 Color currColor = { 255, 255, 255 };
