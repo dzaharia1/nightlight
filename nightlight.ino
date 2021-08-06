@@ -25,6 +25,7 @@ void setup()
 
   connectionSetup();
   startNeoPixel();
+  checkMode(500);
 }
 
 void loop() {
@@ -40,6 +41,10 @@ void loop() {
   } else if (mode == MODE_PARTY) {
     party(256);
   }
+}
+
+void checkMode() {
+  checkMode(50);
 }
 
 void checkMode(int timeout)
@@ -92,14 +97,14 @@ void nightFadeIn() {
       calibratedColor.blue
     ));
     pixels.show();
-    delay(200);
+    checkMode(200);
   }
 
-  delay(10000);
+  checkMode(10000);
 
   while (digitalRead(PIRSENSOR)) {
     Serial.println("Still sensing motion");
-    delay(3000);
+    checkMode(3000);
   }
 
   nightFadeOut(true);
@@ -116,7 +121,7 @@ void nightFadeOut(bool watchMotion) {
       calibratedColor.blue
     ));
     pixels.show();
-    delay(200);
+    checkMode(200);
 
     if (digitalRead(PIRSENSOR) && watchMotion) {
       Serial.println("oop faded out too soon!");
