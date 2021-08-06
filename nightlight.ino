@@ -25,17 +25,14 @@ void setup()
 
   connectionSetup();
   startNeoPixel();
-  checkMode(500);
 }
 
 void loop() {
   MQTT_connect();
-  checkMode(500);
+  checkMode();
 
-  if (mode == MODE_NIGHTLIGHT) {
-    if (digitalRead(PIRSENSOR) && analogRead(PHOTOCELL) < 160) {
-      nightFadeIn();
-    }
+  if (mode == MODE_NIGHTLIGHT && digitalRead(PIRSENSOR) && analogRead(PHOTOCELL) < 160) {
+    nightFadeIn();
   } else if (mode == MODE_CHILL) {
     party(65536/2);
   } else if (mode == MODE_PARTY) {
@@ -44,11 +41,12 @@ void loop() {
 }
 
 void checkMode() {
-  checkMode(50);
+  checkMode(500);
 }
 
-void checkMode(int timeout)
-{
+void checkMode(int timeout) {
+  mqtt.ping();
+
   Adafruit_MQTT_Subscribe *subscription;
   while (subscription = mqtt.readSubscription(timeout)) {
     if (subscription == &colorFeed) {
@@ -132,17 +130,16 @@ void nightFadeOut(bool watchMotion) {
 }
 
 void party(int timing) {
-    int currMode = mode;
-    
-    for (int i = 0; i < timing; i++) {
-        pixels.fill(pixels.ColorHSV(i * (65536 / timing), 255, currBrightness));
-        pixels.show();
-        if (i % 128 == 0) {
-            checkMode(50);
-            if (currMode != mode) {
-                return;
-            }
-        }
-        delay(10);
+  for (int i = 0; i < timing; i++) {
+    pixels.fill(pixels.ColorHSV(i * (65536 / timing), 255, currBrightness));
+    pixels.show();
+    if (i % 128 == 0) {
+      int currMode = mode;
+      checkMode(50);
+      if (currMode != mode) {
+          return;
+      }
     }
+    delay(10);
+  }
 }
