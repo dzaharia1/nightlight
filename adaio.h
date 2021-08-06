@@ -19,29 +19,13 @@ WiFiClient client;
 
 Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
 Adafruit_MQTT_Publish motionSensor = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/motionsensor");
-Adafruit_MQTT_Publish photocellStream = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/photocell");
+Adafruit_MQTT_Publish startupLogPublish = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/startup-log");
 Adafruit_MQTT_Publish colorFeedPublish = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/color-setting");
 Adafruit_MQTT_Publish brightnessPublish = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/brightness");
 Adafruit_MQTT_Subscribe colorFeed = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/color-setting");
 Adafruit_MQTT_Subscribe brightnessFeed = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/brightness");
 Adafruit_MQTT_Subscribe colorTrigger = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/color-trigger");
 Adafruit_MQTT_Subscribe modeFeed = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/night-mode");
-
-void connectionSetup() {
-    WiFi.setPins(WINC_CS, WINC_IRQ, WINC_RST, WINC_EN);
-    if (WiFi.status() == WL_NO_SHIELD)
-    {
-        Serial.println("No WINC1500");
-        while (true)
-            ;
-    }
-    Serial.println("wifi ok");
-
-    mqtt.subscribe(&colorFeed);
-    mqtt.subscribe(&brightnessFeed);
-    mqtt.subscribe(&colorTrigger);
-    mqtt.subscribe(&modeFeed);
-}
 
 void mqttPublish(Adafruit_MQTT_Publish stream, char *value) {
     if (!stream.publish(value)) {
@@ -89,4 +73,22 @@ void MQTT_connect()
     }
 
     Serial.println("MQTT Connected!");
+}
+
+void connectionSetup() {
+    WiFi.setPins(WINC_CS, WINC_IRQ, WINC_RST, WINC_EN);
+    if (WiFi.status() == WL_NO_SHIELD) {
+        Serial.println("No WINC1500");
+        while (true);
+    }
+    Serial.println("wifi ok");
+
+    mqtt.subscribe(&colorFeed);
+    mqtt.subscribe(&brightnessFeed);
+    mqtt.subscribe(&colorTrigger);
+    mqtt.subscribe(&modeFeed);
+
+    MQTT_connect();
+
+    mqttPublish(startupLogPublish, "Startup");
 }
