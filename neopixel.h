@@ -14,7 +14,7 @@
 #define MAGENTA     "#ff00e8"
 #define WHITE       "#ffffff"
 #define YELLOW      "#ffb900"
-#define COOLWHITE   "#eeeeee"
+#define COOLWHITE   "#ffffff"
 #define WARMWHITE   "#ff7e2b"
 #define NUMPIXELS   45
 
