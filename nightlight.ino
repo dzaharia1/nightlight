@@ -41,6 +41,7 @@ void loop() {
     party(256);
   }
 }
+
 void checkMode(int timeout)
 {
   Adafruit_MQTT_Subscribe *subscription;
