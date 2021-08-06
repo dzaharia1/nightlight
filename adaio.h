@@ -30,8 +30,7 @@ Adafruit_MQTT_Subscribe modeFeed = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "
 void mqttPublish(Adafruit_MQTT_Publish stream, char *value) {
     if (!stream.publish(value)) {
         Serial.println("Failed");
-    }
-    else {
+    } else {
         Serial.print("Published ");
         Serial.print(value);
         Serial.print(" to ");
@@ -90,5 +89,9 @@ void connectionSetup() {
 
     MQTT_connect();
 
-    mqttPublish(startupLogPublish, "Startup");
+    mqttPublish(startupLogPublish, "Starting up");
+
+    mqttPublish(Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/color-setting/get"), "1");
+    mqttPublish(Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/brightness/get"), "1");
+    mqttPublish(Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/night-mode/get"), "1");
 }
