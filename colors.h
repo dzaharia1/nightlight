@@ -18,35 +18,53 @@
 char *parseColor(char *colorName) {
     String colorNameString = colorName;
 
-    if (!colorNameString.compareTo("blue") || !colorNameString.compareTo("Blue")) {
+    if (!colorNameString.compareTo("blue") ||
+               !colorNameString.compareTo("Blue")) {
         return (char *)BLUE;
-    } else if (!colorNameString.compareTo("red") || !colorNameString.compareTo("Red")) {
+    } else if (!colorNameString.compareTo("red") ||
+               !colorNameString.compareTo("Red")) {
         return (char *)RED;
-    } else if (!colorNameString.compareTo("Peach") || !colorNameString.compareTo("peach")) {
+    } else if (!colorNameString.compareTo("Peach") ||
+               !colorNameString.compareTo("peach")) {
         return (char *)PEACH;
-    } else if (!colorNameString.compareTo("coral") || !colorNameString.compareTo("Coral")) {
+    } else if (!colorNameString.compareTo("coral") ||
+               !colorNameString.compareTo("Coral")) {
         return (char *)CORAL;
-    } else if (!colorNameString.compareTo("yellow") || !colorNameString.compareTo("Yellow")) {
+    } else if (!colorNameString.compareTo("yellow") ||
+               !colorNameString.compareTo("Yellow")) {
         return (char *)YELLOW;
-    } else if (!colorNameString.compareTo("lemonade") || !colorNameString.compareTo("Lemonade")) {
+    } else if (!colorNameString.compareTo("lemonade") ||
+               !colorNameString.compareTo("Lemonade")) {
         return (char *)LEMONADE;
-    } else if (!colorNameString.compareTo("lime") || !colorNameString.compareTo("Lime")) {
+    } else if (!colorNameString.compareTo("lime") ||
+               !colorNameString.compareTo("Lime")) {
         return (char *)LIME;
-    } else if (!colorNameString.compareTo("green") || !colorNameString.compareTo("Green")) {
+    } else if (!colorNameString.compareTo("green") ||
+               !colorNameString.compareTo("Green")) {
         return (char *)GREEN;
-    } else if (!colorNameString.compareTo("magenta") || !colorNameString.compareTo("Magenta")) {
+    } else if (!colorNameString.compareTo("magenta") ||
+               !colorNameString.compareTo("Magenta")) {
         return (char *)MAGENTA;
-    } else if (!colorNameString.compareTo("purple") || !colorNameString.compareTo("Purple")) {
+    } else if (!colorNameString.compareTo("purple") ||
+               !colorNameString.compareTo("Purple")) {
         return (char *)PURPLE;
-    } else if (!colorNameString.compareTo("teal") || !colorNameString.compareTo("Teal")) {
+    } else if (!colorNameString.compareTo("teal") ||
+               !colorNameString.compareTo("Teal")) {
         return (char *)TEAL;
-    } else if (!colorNameString.compareTo("cyan") || !colorNameString.compareTo("Cyan")) {
+    } else if (!colorNameString.compareTo("cyan") ||
+               !colorNameString.compareTo("Cyan")) {
         return (char *)CYAN;
-    } else if (!colorNameString.compareTo("Warm White") || !colorNameString.compareTo("warm white") || !colorNameString.compareTo("Warm white") || !colorNameString.compareTo("warm White")) {
+    } else if (!colorNameString.compareTo("Warm White") ||
+               !colorNameString.compareTo("warm white") ||
+               !colorNameString.compareTo("Warm white") ||
+               !colorNameString.compareTo("warm White")) {
         return (char *)WARMWHITE;
-    } else if (!colorNameString.compareTo("Cool White") || !colorNameString.compareTo("cool white") || !colorNameString.compareTo("Cool white") || !colorNameString.compareTo("cool White")) {
+    } else if (!colorNameString.compareTo("Cool White") ||
+               !colorNameString.compareTo("cool white") ||
+               !colorNameString.compareTo("Cool white") ||
+               !colorNameString.compareTo("cool White")) {
         return (char *)COOLWHITE;
     }
 
-    return colorName;
+    return COOLWHITE;
 }
