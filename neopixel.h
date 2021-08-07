@@ -1,24 +1,10 @@
 #include <Adafruit_NeoPixel.h>
+#include "colors.h"
 
 #define NEOPIXEL 11
+#define NUMPIXELS 45
 
-// color definitions
-#define RED         "#ff0000"
-#define LEMONADE    "#ff0018"
-#define PEACH       "#ff3700"
-#define GREEN       "#00ff00"
-#define TEAL        "#00ff93"
-#define CYAN        "#00ffff"
-#define BLUE        "#0000ff"
-#define PURPLE      "#9600ff"
-#define MAGENTA     "#ff00e8"
-#define WHITE       "#ffffff"
-#define YELLOW      "#ffb900"
-#define COOLWHITE   "#ffffff"
-#define WARMWHITE   "#ff7e2b"
-#define NUMPIXELS   45
-
-struct Color {int red,green,blue;};
+struct Color {int red, green, blue; };
 
 int currBrightness = 255;
 int minBrightness = 10;
@@ -53,8 +39,7 @@ Color calibrateColorBrightness(Color originalColor, int brightness) {
             originalColor.blue,
             0, originalColor.red,
             0, brightness);
-    }
-    else if (originalColor.green >= originalColor.red && originalColor.green >= originalColor.blue) {
+    } else if (originalColor.green >= originalColor.red && originalColor.green >= originalColor.blue) {
         retColor.green = brightness;
         retColor.red = map(
             originalColor.red,
@@ -65,8 +50,7 @@ Color calibrateColorBrightness(Color originalColor, int brightness) {
             0,
             originalColor.green,
             0, brightness);
-    }
-    else if (originalColor.blue >= originalColor.red && originalColor.blue >= originalColor.green) {
+    } else if (originalColor.blue >= originalColor.red && originalColor.blue >= originalColor.green) {
         retColor.blue = brightness;
         retColor.red = map(
             originalColor.red,
@@ -140,46 +124,6 @@ void setLedBrightness(int brightness)
 void setLedBrightness(char *brightnessString)
 {
     setLedBrightness(map(atoi(brightnessString), 0, 100, 0, 255));
-}
-
-char *parseColor(char *colorName)
-{
-    String colorNameString = colorName;
-
-    if (!colorNameString.compareTo("blue") || !colorNameString.compareTo("Blue")) {
-        return (char *)BLUE;
-    }
-    else if (!colorNameString.compareTo("red") || !colorNameString.compareTo("Red")) {
-        return (char *)RED;
-    }
-    else if (!colorNameString.compareTo("yellow") || !colorNameString.compareTo("Yellow")) {
-        return (char *)YELLOW;
-    }
-    else if (!colorNameString.compareTo("lemonade") || !colorNameString.compareTo("Lemonade")) {
-        return (char *)LEMONADE;
-    }
-    else if (!colorNameString.compareTo("green") || !colorNameString.compareTo("Green")) {
-        return (char *)GREEN;
-    }
-    else if (!colorNameString.compareTo("magenta") || !colorNameString.compareTo("Magenta")) {
-        return (char *)MAGENTA;
-    }
-    else if (!colorNameString.compareTo("purple") || !colorNameString.compareTo("Purple")) {
-        return (char *)PURPLE;
-    }
-    else if (!colorNameString.compareTo("teal") || !colorNameString.compareTo("Teal")) {
-        return (char *)TEAL;
-    }
-    else if (!colorNameString.compareTo("cyan") || !colorNameString.compareTo("Cyan")) {
-        return (char *)CYAN;
-    }
-    else if (!colorNameString.compareTo("Warm White") || !colorNameString.compareTo("warm white") || !colorNameString.compareTo("Warm white") || !colorNameString.compareTo("warm White")) {
-        return (char *)WARMWHITE;
-    }
-    else if (!colorNameString.compareTo("Cool White") || !colorNameString.compareTo("cool white") || !colorNameString.compareTo("Cool white") || !colorNameString.compareTo("cool White")) {
-        return (char *)COOLWHITE;
-    }
-    return colorName;
 }
 
 void turnOnLamp() {
