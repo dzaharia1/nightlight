@@ -96,13 +96,16 @@ void nightFadeIn() {
     ));
     pixels.show();
     checkMode(200);
+    if (mode != MODE_NIGHTLIGHT) { return; }
   }
 
   checkMode(10000);
+  if (mode != MODE_NIGHTLIGHT) { return; }
 
   while (digitalRead(PIRSENSOR)) {
     Serial.println("Still sensing motion");
     checkMode(3000);
+    if (mode != MODE_NIGHTLIGHT) { return; }
   }
 
   nightFadeOut(true);
@@ -120,11 +123,12 @@ void nightFadeOut(bool watchMotion) {
     ));
     pixels.show();
     checkMode(200);
+    if (mode != MODE_NIGHTLIGHT) { return; }
 
     if (digitalRead(PIRSENSOR) && watchMotion) {
       Serial.println("oop faded out too soon!");
       nightFadeIn();
-      break;
+      return;
     }
   }
 }
@@ -136,9 +140,7 @@ void party(int timing) {
     if (i % 128 == 0) {
       int currMode = mode;
       checkMode(50);
-      if (currMode != mode) {
-          return;
-      }
+      if (currMode != mode) { return; }
     }
     delay(10);
   }
