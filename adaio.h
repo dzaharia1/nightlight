@@ -38,8 +38,7 @@ void mqttPublish(Adafruit_MQTT_Publish stream, char *value) {
     }
 }
 
-void MQTT_connect()
-{
+void MQTT_connect() {
     int8_t ret;
 
     // attempt to connect to Wifi network:
