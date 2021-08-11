@@ -1,10 +1,12 @@
 // color definitions
 #define RED         "#ff0000"
+#define ORANGE      "#ff3000"
 #define LEMONADE    "#ff0018"
 #define CORAL       "#ff1f08"
 #define PEACH       "#ff2800"
 #define GREEN       "#00ff00"
 #define LIME        "#77ff07"
+#define MINT        "#00ff16"
 #define TEAL        "#00ff93"
 #define CYAN        "#00ffff"
 #define BLUE        "#0000ff"
@@ -24,6 +26,9 @@ char *parseColor(char *colorName) {
     } else if (!colorNameString.compareTo("red") ||
                !colorNameString.compareTo("Red")) {
         return (char *)RED;
+    } else if (!colorNameString.compareTo("orange") ||
+               !colorNameString.compareTo("Orange")) {
+        return (char *)ORANGE;
     } else if (!colorNameString.compareTo("Peach") ||
                !colorNameString.compareTo("peach")) {
         return (char *)PEACH;
@@ -39,6 +44,9 @@ char *parseColor(char *colorName) {
     } else if (!colorNameString.compareTo("lime") ||
                !colorNameString.compareTo("Lime")) {
         return (char *)LIME;
+    } else if (!colorNameString.compareTo("mint") ||
+               !colorNameString.compareTo("Mint")) {
+        return (char *)MINT;
     } else if (!colorNameString.compareTo("green") ||
                !colorNameString.compareTo("Green")) {
         return (char *)GREEN;
