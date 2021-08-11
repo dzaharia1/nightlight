@@ -18,7 +18,7 @@ Adafruit_NeoPixel pixels(NUMPIXELS, NEOPIXEL, NEO_GRBW + NEO_KHZ800);
 void startNeoPixel() {
     pixels.begin();
     pixels.setBrightness(255);
-    pixels.fill(pixels.Color(255, 255, 255));
+    pixels.fill(pixels.Color(5, 5, 5));
     pixels.show();
 }
 
