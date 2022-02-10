@@ -123,7 +123,7 @@ void setLedBrightness(int brightness)
 
 void setLedBrightness(char *brightnessString)
 {
-    setLedBrightness(map(atoi(brightnessString), 0, 100, 0, 255));
+    setLedBrightness(map(atoi(brightnessString), 0, 100, 0, 230));
 }
 
 void turnOnLamp() {
