@@ -21,7 +21,7 @@ Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO
 Adafruit_MQTT_Publish motionSensor = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/motionsensor");
 Adafruit_MQTT_Publish startupLogPublish = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/startup-log");
 Adafruit_MQTT_Publish colorFeedPublish = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/color-setting");
-Adafruit_MQTT_Publish brightnessPublish = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/brightness");
+Adafruit_MQTT_Publish modePublish = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/night-mode");
 Adafruit_MQTT_Subscribe colorFeed = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/color-setting");
 Adafruit_MQTT_Subscribe brightnessFeed = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/brightness");
 Adafruit_MQTT_Subscribe colorTrigger = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/color-trigger");

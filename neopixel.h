@@ -2,7 +2,7 @@
 #include "colors.h"
 
 #define NEOPIXEL 11
-#define NUMPIXELS 45
+#define NUMPIXELS 30
 
 struct Color {int red, green, blue; };
 

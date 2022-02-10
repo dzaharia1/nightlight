@@ -52,6 +52,7 @@ void checkMode(int timeout) {
     if (subscription == &colorFeed) {
       if (mode != MODE_NIGHTLIGHT) {
         mode = MODE_NORMAL;
+        mqttPublish(modePublish, (char *)mode);
       }
       setLedColor((char *)colorFeed.lastread);
     } else if (subscription == &brightnessFeed) {
