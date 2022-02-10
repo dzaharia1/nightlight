@@ -3,22 +3,23 @@
 
 #define NEOPIXEL 11
 #define NUMPIXELS 45
+#define MAXBRIGHTNESS 255
 
 struct Color {int red, green, blue; };
 
-int currBrightness = 255;
+int currBrightness = MAXBRIGHTNESS;
 int minBrightness = 10;
 int nightBrightness = 3;
 int previousBrightness = currBrightness;
-Color currColor = { 255, 255, 255 };
+Color currColor = { MAXBRIGHTNESS / 10, MAXBRIGHTNESS / 10, MAXBRIGHTNESS / 10 };
 
 // set up the neopixel
 Adafruit_NeoPixel pixels(NUMPIXELS, NEOPIXEL, NEO_GRBW + NEO_KHZ800);
 
 void startNeoPixel() {
     pixels.begin();
-    pixels.setBrightness(255);
-    pixels.fill(pixels.Color(255, 255, 255));
+    pixels.setBrightness(200);
+    pixels.fill(pixels.Color(50, 50, 50));
     pixels.show();
 }
 
@@ -123,7 +124,7 @@ void setLedBrightness(int brightness)
 
 void setLedBrightness(char *brightnessString)
 {
-    setLedBrightness(map(atoi(brightnessString), 0, 100, 0, 230));
+    setLedBrightness(map(atoi(brightnessString), 0, 100, 0, MAXBRIGHTNESS));
 }
 
 void turnOnLamp() {
