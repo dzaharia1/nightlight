@@ -20,6 +20,7 @@ int mode = MODE_NORMAL;
 void setup()
 {
   Serial.begin(115200);
+  Serial.println("Startup");
   pinMode(PIRSENSOR, INPUT);
   pinMode(PHOTOCELL, INPUT);
 

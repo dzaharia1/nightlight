@@ -34,7 +34,7 @@ void mqttPublish(Adafruit_MQTT_Publish stream, char *value) {
         Serial.print("Published ");
         Serial.print(value);
         Serial.print(" to ");
-        Serial.println(stream.getTopic());
+//        Serial.println(stream.getTopic());
     }
 }
 
