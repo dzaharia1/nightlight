@@ -99,7 +99,7 @@ void party(int timing) {
     if (i % 128 == 0) {
       char *currMode = mode;
       checkMode(50);
-      if (currMode != mode) { return; }
+      if (strcmp(currMode, mode)) { return; }
     }
     delay(10);
   }
