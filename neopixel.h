@@ -95,21 +95,47 @@ void setLedColor(Color newColor)
     currColor = newColor;
 }
 
+int toInt(String str) {
+  int val = 0;
+  for (int i = 0; i < str.length(); i ++) {
+    val = val * 10 + str[i] - '0';
+  }
+  return val;
+}
+
 void setLedColor(char *colorString)
 {
-    char red[2] = {colorString[1], colorString[2]};
-    char green[2] = {colorString[3], colorString[4]};
-    char blue[2] = {colorString[5], colorString[6]};
-    Color newColor = {
-        StrToHex(red),
-        StrToHex(green),
-        StrToHex(blue)};
+    Serial.println(colorString);
+    String newColors[3];
+    int characterIndex = 0;
+    int colorIndex = 0;
+    int i = 0;
 
+    for (int j = 0; j < 3; j ++){
+      newColors[j] = "";
+    }
+
+    for (char *ptr = colorString; *ptr != '\0'; ptr++) {
+        if (*ptr != ',' && characterIndex <= 2) {
+          newColors[colorIndex].concat(*ptr);
+          characterIndex++;
+        } else if (*ptr == ',') {
+          characterIndex = 0;
+          colorIndex++;
+        }
+    }
+
+    Color newColor = {
+        toInt(newColors[0]),
+        toInt(newColors[1]),
+        toInt(newColors[2])
+    };
     setLedColor(newColor);
 }
 
 void setLedBrightness(int brightness)
 {
+    Serial.println(brightness);
     previousBrightness = currBrightness;
     currBrightness = brightness;
     if (brightness == 0) {
@@ -124,7 +150,7 @@ void setLedBrightness(int brightness)
 
 void setLedBrightness(char *brightnessString)
 {
-    setLedBrightness(map(atoi(brightnessString), 0, 100, 0, MAXBRIGHTNESS));
+    setLedBrightness(atoi(brightnessString));
 }
 
 void turnOnLamp() {
