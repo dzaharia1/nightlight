@@ -4,8 +4,6 @@
 #include <WiFi101.h>
 #include "neopixel.h"
 
-#define AIO_SERVER "io.adafruit.com"
-#define AIO_SERVERPORT 1883
 #define WINC_CS 8
 #define WINC_IRQ 7
 #define WINC_RST 4
@@ -17,24 +15,21 @@ char pass[] = WIFI_PASS;
 int status = WL_IDLE_STATUS;
 WiFiClient client;
 
-Adafruit_MQTT_Client mqtt(&client, AIO_SERVER, AIO_SERVERPORT, AIO_USERNAME, AIO_KEY);
-Adafruit_MQTT_Publish motionSensor = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/motionsensor");
-Adafruit_MQTT_Publish startupLogPublish = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/startup-log");
-Adafruit_MQTT_Publish colorFeedPublish = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/color-setting");
-Adafruit_MQTT_Publish brightnessPublish = Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/brightness");
-Adafruit_MQTT_Subscribe colorFeed = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/color-setting");
-Adafruit_MQTT_Subscribe brightnessFeed = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/brightness");
-Adafruit_MQTT_Subscribe colorTrigger = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/color-trigger");
-Adafruit_MQTT_Subscribe modeFeed = Adafruit_MQTT_Subscribe(&mqtt, AIO_USERNAME "/feeds/night-mode");
+Adafruit_MQTT_Client mqtt(&client, HA_SERVER, HA_SERVERPORT, HA_USERNAME, HA_PASSWORD);
+Adafruit_MQTT_Publish colorFeedPublish = Adafruit_MQTT_Publish(&mqtt, "box-light/rgb");
+Adafruit_MQTT_Publish brightnessPublish = Adafruit_MQTT_Publish(&mqtt, "box-light/brightness");
+Adafruit_MQTT_Publish switchPublish = Adafruit_MQTT_Publish(&mqtt, "box-light/status");
+Adafruit_MQTT_Subscribe colorFeed = Adafruit_MQTT_Subscribe(&mqtt, "box-light/rgb/set");
+Adafruit_MQTT_Subscribe brightnessFeed = Adafruit_MQTT_Subscribe(&mqtt, "box-light/brightness/set");
+Adafruit_MQTT_Subscribe switchFeed = Adafruit_MQTT_Subscribe(&mqtt, "box-light/switch");
+Adafruit_MQTT_Subscribe modeFeed = Adafruit_MQTT_Subscribe(&mqtt, "box-light/effect/set");
 
 void mqttPublish(Adafruit_MQTT_Publish stream, char *value) {
     if (!stream.publish(value)) {
         Serial.println("Failed");
     } else {
         Serial.print("Published ");
-        Serial.print(value);
-        Serial.print(" to ");
-//        Serial.println(stream.getTopic());
+        Serial.println(value);
     }
 }
 
@@ -83,14 +78,8 @@ void connectionSetup() {
 
     mqtt.subscribe(&colorFeed);
     mqtt.subscribe(&brightnessFeed);
-    mqtt.subscribe(&colorTrigger);
     mqtt.subscribe(&modeFeed);
-
+    mqtt.subscribe(&switchFeed);
+    Serial.println("Connecting...");
     MQTT_connect();
-
-    mqttPublish(startupLogPublish, "Starting up");
-
-    mqttPublish(Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/color-setting/get"), "1");
-    mqttPublish(Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/brightness/get"), "1");
-    mqttPublish(Adafruit_MQTT_Publish(&mqtt, AIO_USERNAME "/feeds/night-mode/get"), "1");
 }
