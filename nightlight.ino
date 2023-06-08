@@ -8,7 +8,6 @@
 
 // operating modes
 #define MODE_NORMAL     "Normal"
-#define MODE_NIGHTLIGHT "Night light"
 #define MODE_CHILL      "Chill"
 #define MODE_PARTY      "Party"
 #define MODE_LAMP       "Blast"
@@ -69,9 +68,7 @@ void checkMode(int timeout) {
     } else if (subscription == &brightnessFeed) {
       Serial.print("Set brightness to ");
       Serial.println((char *)brightnessFeed.lastread);
-      if (mode == MODE_NIGHTLIGHT) {
-        nightBrightness = atoi((char *)brightnessFeed.lastread);
-      } else if (!strcmp(mode, MODE_CHILL) || !strcmp(mode, MODE_PARTY)) {
+      if (!strcmp(mode, MODE_CHILL) || !strcmp(mode, MODE_PARTY)) {
         currBrightness = atoi((char *)brightnessFeed.lastread);
       } else {
         setLedBrightness((char *)brightnessFeed.lastread);
@@ -86,9 +83,6 @@ void checkMode(int timeout) {
 
       if (!strcmp(mode, MODE_NORMAL)) {
         setLedColor(currColor);
-      } else if (!strcmp(mode, MODE_NIGHTLIGHT)) {
-        dayBrightness = currBrightness;
-        setLedBrightness(0);
       } else if (!strcmp(mode, MODE_LAMP)) {
         turnOnLamp();
       }
@@ -96,55 +90,6 @@ void checkMode(int timeout) {
   }
 
   MQTT_connect();
-}
-
-void nightFadeIn() {
-  Serial.println("Fading in");
-  while (currBrightness < nightBrightness) {
-    currBrightness ++;
-    Color calibratedColor = calibrateColorBrightness(currColor, currBrightness);
-    pixels.fill(pixels.Color(
-      calibratedColor.red,
-      calibratedColor.green,
-      calibratedColor.blue
-    ));
-    pixels.show();
-    checkMode(200);
-    if (mode != MODE_NIGHTLIGHT) { return; }
-  }
-
-  checkMode(10000);
-  if (mode != MODE_NIGHTLIGHT) { return; }
-
-  while (digitalRead(PIRSENSOR)) {
-    Serial.println("Still sensing motion");
-    checkMode(3000);
-    if (mode != MODE_NIGHTLIGHT) { return; }
-  }
-
-  nightFadeOut(true);
-}
-
-void nightFadeOut(bool watchMotion) {
-  Serial.println("fading out");
-  while (currBrightness > 0) {
-    currBrightness --;
-    Color calibratedColor = calibrateColorBrightness(currColor, currBrightness);
-    pixels.fill(pixels.Color(
-      calibratedColor.red,
-      calibratedColor.green,
-      calibratedColor.blue
-    ));
-    pixels.show();
-    checkMode(200);
-    if (mode != MODE_NIGHTLIGHT) { return; }
-
-    if (digitalRead(PIRSENSOR) && watchMotion) {
-      Serial.println("oop faded out too soon!");
-      nightFadeIn();
-      return;
-    }
-  }
 }
 
 void party(int timing) {
